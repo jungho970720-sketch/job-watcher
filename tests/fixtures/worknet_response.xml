@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wantedRoot>
+  <total>1</total>
+  <startPage>1</startPage>
+  <display>10</display>
+  <wanted>
+    <wantedAuthNo>W20260727001</wantedAuthNo>
+    <company>테스트 전산센터</company>
+    <title>전산 관제 담당자 채용</title>
+    <sal>회사내규에 따름</sal>
+    <region>광주광역시 북구</region>
+    <career>신입</career>
+    <regDt>2026.07.27</regDt>
+    <closeDt>2026.08.27</closeDt>
+    <wantedInfoUrl>https://www.work24.go.kr/wk/a/b/1200/wantedView.do?wantedAuthNo=W20260727001</wantedInfoUrl>
+  </wanted>
+</wantedRoot>
