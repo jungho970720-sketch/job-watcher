@@ -1,0 +1,21 @@
+{
+  "jobs": {
+    "count": 1,
+    "start": 0,
+    "total": "1",
+    "job": [
+      {
+        "id": "45678901",
+        "url": "https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=45678901",
+        "company": {"detail": {"href": "https://example.com", "name": "테스트 IT"}},
+        "position": {
+          "title": "전산보안 담당자",
+          "location": {"code": "112", "name": "광주"},
+          "experience-level": {"code": 2, "min": 0, "max": 2, "name": "신입/경력2년↑"}
+        },
+        "posting-date": "2026-07-27 09:00:00",
+        "expiration-date": "2026-08-27"
+      }
+    ]
+  }
+}
