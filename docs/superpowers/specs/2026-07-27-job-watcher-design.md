@@ -33,10 +33,10 @@ job_watcher/
     filters.json          # 필터 조건 (사용자가 직접 추가/삭제)
   sources/
     base.py                # 공통 인터페이스 (JobPosting 데이터클래스, fetch() 시그니처)
-    saramin.py              # 사람인 Open API 연동
-    worknet.py              # 워크넷(공공데이터포털) API 연동
-    jobkorea.py             # 잡코리아 스크래핑
-    jobda.py                # 잡다 스크래핑
+    saramin.py              # 사람인 Open API 연동 (oapi.saramin.co.kr/job-search)
+    worknet.py              # 워크넷 공식 Open API 연동 (openapi.work.go.kr, XML 응답)
+    jobda.py                # 잡다 비공개 JSON API 연동 (api.jobda.im/position, 인증 불필요, 확인됨)
+    jobkorea.py             # 잡코리아 스크래핑 (Playwright 렌더링 필요 — 아래 참고)
   filter.py                # filters.json 조건으로 매칭
   state.py                 # 이전 실행 기록 로드/저장, 신규 여부 판정
   dashboard.py              # HTML 렌더링
@@ -50,9 +50,10 @@ dashboard.html               # 최종 산출물, 매일 덮어쓰기
 ## 데이터 흐름
 
 1. `main.py` 실행 → `sources/` 하위 4개 모듈이 각각 공고를 수집한다.
-   - 사람인: Open API 사용
-   - 워크넷: 공공데이터포털 채용정보 API 사용
-   - 잡코리아, 잡다: 공식 API가 없으므로 HTML 스크래핑, 요청 간 딜레이 적용
+   - 사람인: Open API 사용 (`GET https://oapi.saramin.co.kr/job-search`, access-key 필요, JSON 응답)
+   - 워크넷: 공식 Open API 사용 (`GET http://openapi.work.go.kr/opi/opi/opia/wantedApi.do`, authKey 필요, XML 응답)
+   - 잡다: 별도 인증이 필요 없는 공개 JSON API 사용 (`GET https://api.jobda.im/position`) — 실제 요청을 확인해 검증됨
+   - 잡코리아: 공식 API가 없고, 검색 결과 페이지가 JavaScript로 렌더링되는 SPA임을 실제 확인함(정적 HTML 요청으로는 공고 목록이 내려오지 않음) → Playwright로 페이지를 렌더링한 뒤 파싱한다. 요청 간 딜레이를 적용한다.
 2. 모든 결과를 공통 `JobPosting` 형태로 정규화한다.
 3. `filter.py`가 `config/filters.json`의 조건(직무 키워드 포함, 지역 포함, 경력 상한 이하, 제외 키워드 미포함)으로 필터링한다.
 4. `state.py`가 `state.json`에 저장된 이전 공고 ID 목록과 대조하여 신규 공고에 `is_new=True`를 표시하고, 마감된 공고는 목록에서 제거한다.
@@ -78,6 +79,8 @@ dashboard.html               # 최종 산출물, 매일 덮어쓰기
 - `exclude_keywords`: 제목에 포함되면 무조건 제외
 
 사용자가 조건을 추가하거나 빼고 싶으면 각 배열에 문자열을 추가/삭제하면 된다. 별도의 편집 UI나 CLI 명령은 만들지 않는다 — 텍스트 편집기로 직접 수정하는 것으로 충분하다.
+
+각 사이트 API/스크래핑 결과가 제공하는 필드가 서로 달라(예: 잡다 API는 지역을 숫자 코드로만 제공하고 한글 지역명을 제공하지 않음), 필터링은 각 출처 API의 자체 검색 파라미터가 아니라 정규화된 `JobPosting`의 텍스트 필드(제목, 지역명, 경력) 기준으로 `filter.py`에서 일괄 수행한다. 특정 출처가 지역명이나 경력 정보를 제공하지 않으면 해당 조건은 "정보 없음 → 통과"로 처리한다(정보 부족을 이유로 공고를 놓치지 않도록).
 
 ## 에러 처리
 
