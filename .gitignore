@@ -1,0 +1,6 @@
+config/secrets.json
+state.json
+dashboard.html
+__pycache__/
+*.pyc
+.pytest_cache/
