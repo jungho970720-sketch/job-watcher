@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 
 import requests
 
-from sources.base import JobPosting
+from sources.base import JobPosting, SourceAPIError
 
 SEARCH_URL = "http://openapi.work.go.kr/opi/opi/opia/wantedApi.do"
 
@@ -30,6 +30,20 @@ def fetch(job_keywords: list[str], auth_key: str) -> list[JobPosting]:
 
 def _parse_response(xml_text: str) -> list[JobPosting]:
     root = ET.fromstring(xml_text)
+
+    # An invalid/expired authKey comes back as HTTP 200 with well-formed XML
+    # carrying <messageCd> and no <wanted> elements, so raise_for_status()
+    # never fires. Detect it here — otherwise the source silently contributes
+    # zero postings and the dashboard looks the same as a genuinely quiet day.
+    # A successful response carries <total> and no <messageCd>.
+    message_code = root.find("messageCd")
+    if message_code is not None:
+        message = root.find("message")
+        raise SourceAPIError(
+            f"Worknet API error (messageCd={message_code.text}): "
+            f"{message.text if message is not None else ''}"
+        )
+
     result = []
     for wanted in root.findall("wanted"):
         result.append(

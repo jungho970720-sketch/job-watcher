@@ -1,6 +1,6 @@
 import requests
 
-from sources.base import JobPosting
+from sources.base import JobPosting, SourceAPIError
 
 SEARCH_URL = "https://oapi.saramin.co.kr/job-search"
 
@@ -20,6 +20,16 @@ def fetch(job_keywords: list[str], access_key: str) -> list[JobPosting]:
 
 
 def _parse_response(data: dict) -> list[JobPosting]:
+    # An invalid/expired key, a bad parameter, or an exceeded daily quota all
+    # come back as HTTP 200 with {"code": N, "message": "..."} and no "jobs"
+    # key, so raise_for_status() never fires. Detect it here — otherwise the
+    # source silently contributes zero postings and the dashboard looks the
+    # same as a genuinely quiet day.
+    if "jobs" not in data:
+        raise SourceAPIError(
+            f"Saramin API error (code={data.get('code')}): {data.get('message')}"
+        )
+
     jobs = data.get("jobs", {}).get("job", [])
     if isinstance(jobs, dict):
         jobs = [jobs]

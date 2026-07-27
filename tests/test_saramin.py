@@ -1,6 +1,9 @@
 import json
 from pathlib import Path
 
+import pytest
+
+from sources.base import SourceAPIError
 from sources.saramin import _parse_response
 
 FIXTURE = Path(__file__).parent / "fixtures" / "saramin_response.json"
@@ -30,3 +33,28 @@ def test_parse_response_handles_single_job_dict_not_list():
     data["jobs"]["job"] = data["jobs"]["job"][0]
     postings = _parse_response(data)
     assert len(postings) == 1
+
+
+def test_parse_response_raises_on_invalid_key_error_payload():
+    # Real response captured from the live API with an invalid access-key:
+    # HTTP 200 with an error body instead of a "jobs" key. Without an explicit
+    # check this parses to zero postings, so a wrong/expired key would look
+    # identical to "no matching jobs today" — silently, with no warning.
+    error_payload = {"code": 2, "message": "사용 불가능한 access-key 입니다. "}
+
+    with pytest.raises(SourceAPIError):
+        _parse_response(error_payload)
+
+
+def test_parse_response_raises_on_daily_quota_error_payload():
+    # code 4 = daily call limit (500/day) exceeded — must surface, not silently
+    # return an empty dashboard.
+    with pytest.raises(SourceAPIError):
+        _parse_response({"code": 4, "message": "일일 허용 호출 건수를 초과하였습니다."})
+
+
+def test_parse_response_returns_empty_list_for_genuine_zero_results():
+    # A real "no matching jobs" response still carries the "jobs" key, so it
+    # must NOT be treated as an error.
+    postings = _parse_response({"jobs": {"count": 0, "start": 0, "total": "0", "job": []}})
+    assert postings == []
