@@ -1,0 +1,19 @@
+{
+  "pages": {"page": 0, "size": 2, "totalPages": 3000, "totalElements": 6000},
+  "positions": [
+    {
+      "positionSn": 223241,
+      "positionName": "전산보안 신입사원 채용",
+      "companyName": "테스트 시큐리티",
+      "createdDateTime": "2026-07-27T16:30:28",
+      "closingDateTime": null
+    },
+    {
+      "positionSn": 223100,
+      "positionName": "마케팅 인턴 채용",
+      "companyName": "테스트 마케팅",
+      "createdDateTime": "2026-07-27T15:00:00",
+      "closingDateTime": "2026-08-10T17:00:00"
+    }
+  ]
+}
