@@ -15,7 +15,7 @@
 - `config/filters.json` is committed with sensible defaults and is meant to be hand-edited by the user to add/remove conditions — no separate editing UI/CLI.
 - `state.json` and `dashboard.html` are runtime-generated output and gitignored.
 - Every source module separates **fetching** (network/browser I/O) from **parsing** (pure function turning raw response text into `JobPosting` objects), so parsing logic is unit-testable with fixture data and never makes real network calls in tests.
-- Every field the fetch/parse layer cannot determine for a given posting is `None`, never an empty string — `filter.py` treats `None` as "unknown, don't reject."
+- Every *optional* field on `JobPosting` (`location`, `experience_years_required`, `posted_date`, `closing_date` — the ones typed `X | None = None`) that the fetch/parse layer cannot determine is `None`, never an empty string — `filter.py` treats `None` as "unknown, don't reject." This does not apply to the required `str` fields (`title`, `company`, `url`, `external_id`); those have no `None` variant in the dataclass, so a missing value falls back to `""` (in practice, none of the four sources omit these fields).
 
 ---
 
