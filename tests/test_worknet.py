@@ -25,4 +25,6 @@ def test_parse_career_with_years():
 
     assert _parse_career("신입") == 0
     assert _parse_career("경력3년이상") == 3
+    assert _parse_career("경력3년~5년") == 3
+    assert _parse_career("경력1~3년") == 1
     assert _parse_career(None) is None

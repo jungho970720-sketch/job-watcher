@@ -1,3 +1,4 @@
+import re
 import xml.etree.ElementTree as ET
 
 import requests
@@ -57,5 +58,5 @@ def _parse_career(career_text: str | None) -> int | None:
         return None
     if "신입" in career_text:
         return 0
-    digits = "".join(ch for ch in career_text if ch.isdigit())
-    return int(digits) if digits else None
+    match = re.search(r"\d+", career_text)
+    return int(match.group()) if match else None
