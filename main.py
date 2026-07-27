@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 
 import dashboard
@@ -24,14 +25,19 @@ def run(filters: dict, secrets: dict, state_path: Path) -> str:
     for name, fetch_fn in _SOURCES.items():
         try:
             all_postings.extend(fetch_fn(job_keywords, secrets))
-        except Exception:
+        except Exception as exc:
             failed_sources.append(name)
+            # Log only the exception type, never str(exc)/traceback: requests'
+            # raise_for_status() embeds the full request URL (including
+            # access-key=.../authKey=... query params) in the message, so
+            # logging it would leak secrets into stdout/stderr and log files.
+            print(f"[{name}] fetch failed: {type(exc).__name__}", file=sys.stderr)
 
     matched = [p for p in all_postings if job_filter.matches(p, filters)]
 
     seen_ids = state.load_seen_ids(state_path)
     matched = state.mark_new(matched, seen_ids)
-    state.save_seen_ids(state_path, matched)
+    state.save_seen_ids(state_path, matched, previous_seen_ids=seen_ids)
 
     return dashboard.render(matched, failed_sources)
 

@@ -51,7 +51,9 @@ def _parse_page(data: dict) -> list[JobPosting]:
                 url=f"https://www.jobda.im/position/{position_sn}",
                 location=None,
                 experience_years_required=None,
-                posted_date=position.get("createdDateTime"),
+                # createdDateTime is "2026-07-27T16:30:28"; normalize to
+                # "YYYY-MM-DD" so dates sort/compare consistently across sources.
+                posted_date=(position.get("createdDateTime") or "")[:10] or None,
                 closing_date=position.get("closingDateTime"),
             )
         )

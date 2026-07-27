@@ -42,6 +42,28 @@ def test_run_continues_when_one_source_raises(tmp_path: Path):
     assert "총 1건" in html_output
 
 
+def test_run_logs_only_exception_type_to_stderr_without_leaking_secrets(tmp_path: Path, capsys):
+    state_path = tmp_path / "state.json"
+    secret_value = "super-secret-access-key"
+    secrets = {"saramin_access_key": secret_value, "worknet_auth_key": secret_value}
+
+    with (
+        patch(
+            "main.saramin.fetch",
+            side_effect=RuntimeError(f"failed request with access-key={secret_value}"),
+        ),
+        patch("main.worknet.fetch", return_value=[]),
+        patch("main.jobda.fetch", return_value=[]),
+        patch("main.jobkorea.fetch", return_value=[]),
+    ):
+        run(FILTERS, secrets, state_path)
+
+    captured = capsys.readouterr()
+    assert "[saramin] fetch failed: RuntimeError" in captured.err
+    assert secret_value not in captured.err
+    assert secret_value not in captured.out
+
+
 def test_run_filters_out_non_matching_postings(tmp_path: Path):
     state_path = tmp_path / "state.json"
     filters = {**FILTERS, "job_keywords": ["전산"]}

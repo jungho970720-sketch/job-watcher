@@ -31,3 +31,23 @@ def test_mark_new_flags_only_unseen_postings():
     by_id = {p.external_id: p for p in result}
     assert by_id["1"].is_new is False
     assert by_id["2"].is_new is True
+
+
+def test_save_seen_ids_merges_with_previous_ids_instead_of_overwriting(tmp_path: Path):
+    path = tmp_path / "state.json"
+    posting_a = _posting("saramin", "1")
+    posting_b = _posting("worknet", "2")
+
+    # Day 1: both sources succeed.
+    save_seen_ids(path, [posting_a, posting_b])
+    previous_seen_ids = load_seen_ids(path)
+    assert previous_seen_ids == {"saramin:1", "worknet:2"}
+
+    # Day 2: worknet's source fails to fetch, so only posting_a is seen today.
+    # Passing the previously-loaded seen_ids must preserve worknet:2 rather
+    # than wiping it out.
+    save_seen_ids(path, [posting_a], previous_seen_ids=previous_seen_ids)
+
+    loaded = load_seen_ids(path)
+    assert "worknet:2" in loaded
+    assert loaded == {"saramin:1", "worknet:2"}

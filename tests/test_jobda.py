@@ -20,7 +20,7 @@ def test_parse_page_extracts_job_fields():
     assert posting.url == "https://www.jobda.im/position/223241"
     assert posting.location is None
     assert posting.experience_years_required is None
-    assert posting.posted_date == "2026-07-27T16:30:28"
+    assert posting.posted_date == "2026-07-27"
     assert posting.closing_date is None
 
 

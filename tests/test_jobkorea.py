@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sources.jobkorea import _parse_card
 
 REAL_CARD_TEXT = """신입 지원 가능
@@ -24,8 +26,10 @@ def test_parse_card_extracts_fields_from_real_card_text():
     assert posting.location == "전남광주 서구"
     assert posting.url == "https://www.jobkorea.co.kr/Recruit/GI_Read/49646333"
     assert posting.experience_years_required == 0
-    assert posting.posted_date == "07/24"
-    assert posting.closing_date == "08/23"
+    # JobKorea gives no year (MM/DD); normalized to YYYY-MM-DD using the
+    # current year.
+    assert posting.posted_date == f"{datetime.now().year}-07-24"
+    assert posting.closing_date == f"{datetime.now().year}-08-23"
 
 
 def test_parse_card_reads_numeric_experience():

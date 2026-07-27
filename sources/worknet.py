@@ -41,7 +41,7 @@ def _parse_response(xml_text: str) -> list[JobPosting]:
                 url=_text(wanted, "wantedInfoUrl") or "",
                 location=_text(wanted, "region"),
                 experience_years_required=_parse_career(_text(wanted, "career")),
-                posted_date=_text(wanted, "regDt"),
+                posted_date=_normalize_date(_text(wanted, "regDt")),
                 closing_date=_text(wanted, "closeDt"),
             )
         )
@@ -51,6 +51,14 @@ def _parse_response(xml_text: str) -> list[JobPosting]:
 def _text(element: ET.Element, tag: str) -> str | None:
     child = element.find(tag)
     return child.text if child is not None else None
+
+
+def _normalize_date(date_text: str | None) -> str | None:
+    # Worknet dates come as "2026.07.27"; normalize to "YYYY-MM-DD" so dates
+    # sort/compare consistently across sources.
+    if date_text is None:
+        return None
+    return date_text.replace(".", "-")
 
 
 def _parse_career(career_text: str | None) -> int | None:

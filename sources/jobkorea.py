@@ -1,5 +1,6 @@
 import re
 import time
+from datetime import datetime
 
 from playwright.sync_api import sync_playwright
 
@@ -86,7 +87,12 @@ def _parse_experience(lines: list[str]) -> int | None:
 
 def _find_date(lines: list[str], suffix: str) -> str | None:
     for line in lines:
-        match = re.match(r"(\d{2}/\d{2})\([^)]+\)\s*" + suffix, line)
+        match = re.match(r"(\d{2})/(\d{2})\([^)]+\)\s*" + suffix, line)
         if match:
-            return match.group(1)
+            mm, dd = match.group(1), match.group(2)
+            # JobKorea only gives day/month with no year; assume the current
+            # year and normalize to "YYYY-MM-DD" so dates sort/compare
+            # consistently across sources (cross-year edge case ignored for
+            # a daily-run tool).
+            return f"{datetime.now().year}-{mm}-{dd}"
     return None

@@ -17,8 +17,11 @@ def test_parse_response_extracts_job_fields():
     assert posting.title == "전산보안 담당자"
     assert posting.company == "테스트 IT"
     assert posting.location == "광주"
-    assert posting.experience_years_required == 2
-    assert posting.posted_date == "2026-07-27 09:00:00"
+    # experience-level is {"min": 0, "max": 2}: "min" is used (not "max"),
+    # since Saramin's "max" is the top of the accepted range, not a minimum
+    # requirement, so the correct semantic value here is 0.
+    assert posting.experience_years_required == 0
+    assert posting.posted_date == "2026-07-27"
     assert posting.closing_date == "2026-08-27"
 
 

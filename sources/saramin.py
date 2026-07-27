@@ -37,8 +37,18 @@ def _parse_response(data: dict) -> list[JobPosting]:
                 company=job.get("company", {}).get("detail", {}).get("name", ""),
                 url=job.get("url", ""),
                 location=location.get("name"),
-                experience_years_required=_to_int(experience.get("max")),
-                posted_date=job.get("posting-date"),
+                # Saramin's "max" is the top of the accepted range (e.g. min=0,
+                # max=20 means "신입 welcome, up to 20 years"), not a minimum
+                # requirement like Worknet/JobKorea use. filter.py's
+                # _matches_experience assumes "minimum years required"
+                # semantics (years <= max_years), so we must use "min" here;
+                # fall back to "max" only if "min" is absent.
+                experience_years_required=(
+                    _to_int(experience.get("min"))
+                    if experience.get("min") is not None
+                    else _to_int(experience.get("max"))
+                ),
+                posted_date=(job.get("posting-date") or "")[:10] or None,
                 closing_date=job.get("expiration-date"),
             )
         )
